@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لعبة مراجعة اللغة العربية - اليوم الثاني (النسخة النهائية المصححة) 📖</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2980b9;
+            --secondary: #d35400;
+            --success: #27ae60;
+            --danger: #c0392b;
+            --light-bg: #f5f6fa;
+            --card-bg: #ffffff;
+            --text-main: #2f3640;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 850px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 35px;
+            position: relative;
+        }
+
+        .header { text-align: center; margin-bottom: 25px; }
+        h1 { font-weight: 900; color: var(--primary); margin: 0; font-size: 1.8em; }
+        p.subtitle { color: #7f8c8d; font-size: 1em; margin-top: 5px; }
+
+        .progress-wrapper { margin-bottom: 25px; }
+        .progress-info { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: bold; font-size: 0.9em; }
+        .progress-bar-bg { background: #dcdde1; height: 10px; border-radius: 5px; overflow: hidden; }
+        .progress-bar-fill { background: var(--primary); height: 100%; width: 0%; transition: width 0.4s ease; }
+
+        .question-box { animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .badge {
+            background: var(--secondary);
+            color: white;
+            padding: 3px 15px;
+            border-radius: 50px;
+            font-size: 0.8em;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 12px;
+        }
+
+        .context-box {
+            background: #fdf2e9;
+            border: 2px solid #fadbd8;
+            padding: 20px;
+            margin-bottom: 20px;
+            line-height: 1.8;
+            border-radius: 12px;
+            font-size: 1.1em;
+            color: #1a1a1a;
+            white-space: pre-line;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .context-box strong { color: var(--secondary); display: block; margin-bottom: 10px; font-size: 1.1em; }
+
+        .question-title { font-size: 1.3em; font-weight: 700; margin-bottom: 20px; color: var(--primary); }
+
+        .options-container { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .option-card {
+            background: #fff;
+            border: 2px solid #dcdde1;
+            padding: 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 1.1em;
+            text-align: center;
+            font-weight: 600;
+        }
+        .option-card:hover:not(.disabled) { border-color: var(--primary); background: #ebf5fb; }
+        .option-card.correct { background: var(--success) !important; color: white; border-color: var(--success) !important; }
+        .option-card.wrong { background: var(--danger) !important; color: white; border-color: var(--danger) !important; }
+        .option-card.disabled { cursor: default; }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid #dcdde1;
+            font-family: inherit;
+            font-size: 1.1em;
+            resize: none;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+            background: #fff;
+        }
+        textarea:focus { outline: none; border-color: var(--primary); }
+
+        .feedback-box {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            display: none;
+            line-height: 1.6;
+        }
+        .feedback-box.visible { display: block; }
+        .feedback-success { background: #e8f8f5; border: 1px solid #a3e4d7; color: #145a32; }
+        .feedback-warning { background: #fef9e7; border: 1px solid #f9e79f; color: #7d6608; }
+        .feedback-error { background: #fdedec; border: 1px solid #fadbd8; color: #78281f; }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 35px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            transition: 0.2s;
+        }
+        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        .result-screen { text-align: center; display: none; }
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 8px solid var(--primary);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 20px auto;
+            font-size: 2.2em;
+            font-weight: 900;
+            color: var(--primary);
+        }
+
+        @media (max-width: 600px) { .options-container { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="start-screen" class="header">
+        <h1>مراجعة اللغة العربية - اليوم الثاني 📚</h1>
+        <p class="subtitle">النسخة النهائية الشاملة مع النصوص المرفقة</p>
+        <div style="margin-top: 30px;">
+            <button class="btn" onclick="initGame()">ابدأ المراجعة الآن</button>
+        </div>
+    </div>
+
+    <div id="game-screen" style="display: none;">
+        <div class="progress-wrapper">
+            <div class="progress-info">
+                <span id="q-category">الفئة</span>
+                <span id="q-count">0 / 0</span>
+            </div>
+            <div class="progress-bar-bg">
+                <div id="progress-fill" class="progress-bar-fill"></div>
+            </div>
+        </div>
+        
+        <div id="question-area" class="question-box"></div>
+        
+        <div style="text-align: left; margin-top: 15px;">
+            <button id="next-btn" class="btn" style="display: none;" onclick="loadNextQuestion()">السؤال التالي ⬅️</button>
+        </div>
+    </div>
+
+    <div id="result-screen" class="result-screen">
+        <h1>أحسنت يا بطل! 🎓</h1>
+        <div class="score-circle">
+            <span id="final-score">0</span>
+            <span style="font-size: 0.4em; color: #7f8c8d;">من <span id="total-possible">0</span></span>
+        </div>
+        <h2 id="final-rank">عمل رائع!</h2>
+        <p id="final-msg" style="margin-bottom: 20px;"></p>
+        <button class="btn" onclick="location.reload()">إعادة الاختبار 🔄</button>
+    </div>
+</div>
+
+<script>
+    const data = {
+        "questions": [
+            {
+                "category": "التعبير الكتابي",
+                "type": "essay",
+                "context": "الموضوعات المتاحة للكتابة: (احترام المعلم، حب الوطن، أهمية النوم المبكر، ترشيد استهلاك المياه، النظافة، الأمانة، ناويان بالرفق بالحيوان).",
+                "question": "اختر موضوعاً واحداً واكتب منشوراً قصيراً مراعياً العناصر: (العنوان، المحتوى، الدعوة، العبارات الختامية).",
+                "model_answer": "يجب أن يتضمن المنشور: عنواناً جذاباً، محتوى مفيداً يتحدث عن الموضوع المختار، دعوة للقراء للتفاعل، وخاتمة مناسبة."
+            },
+            {
+                "category": "النحو والقواعد",
+                "type": "essay",
+                "context": "اقرأ الفقرة التالية بعناية:\n'إن الكتاب المفيد جليس صالح، تفتح القراءة المستمرة آفاق المعرفة، ولذلك يقضي ذو العلم وقته مستمتعاً بين صفحاته، ولينهل كل علم، وعليكم أيها الشباب أن تبحثوا بشغف؛ ليزداد وعيكم ويزداد الجهل كلاً من بحر العلم'.",
+                "question": "استخرج من الفقرة السابقة فعلاً مضارعاً منصوباً وبين علامة نصبه.",
+                "model_answer": "أن تبحثوا (علامة النصب: حذف النون لأنه من الأفعال الخمسة) أو ليزداد (علامة النصب: الفتحة)."
+            },
+            {
+                "category": "النحو والقواعد",
+                "type": "essay",
+                "context": "تأمل الجملة التالية:\n'ليجتهد العامل؛ ليتقن عمله'.",
+                "question": "حدد نوع اللام في الفعل (ليجتهد) وأعربه إعراباً كاملاً.",
+                "model_answer": "نوع اللام: لام الأمر. الإعراب: فعل مضارع مجزوم وعلامة جزمه السكون."
+            },
+            {
+                "category": "النحو والقواعد",
+                "type": "essay",
+                "context": "تأمل الجملة التالية:\n'ليتقن العامل عمله'.",
+                "question": "حدد نوع اللام في الفعل (ليتقن) وأعربه إعراباً كاملاً.",
+                "model_answer": "نوع اللام: لام الأمر. الإعراب: فعل مضارع مجزوم وعلامة جزمه السكون."
+            },
+            {
+                "category": "النحو والقواعد",
+                "type": "essay",
+                "question": "ثنِ واجمع الجملة التالية مع تغيير ما يلزم:\n'لن يتهاون الجندي في الدفاع عن الوطن'.",
+                "model_answer": "المثنى: لن يتهاونا الجنديان في الدفاع عن الوطن. الجمع: لن يتهاون الجنود في الدفاع عن الوطن (أو لن يتهاونوا)."
+            },
+            {
+                "category": "الإملاء والترقيم",
+                "type": "mcq",
+                "question": "الجميع ................. بالخير. (اختر الكلمة الصحيحة إملائياً)",
+                "options": ["أ- يتفاءلون", "ب- يتفاؤلون", "ج- يتفائلون", "د- يتفاءلوا"],
+                "answer": "أ- يتفاءلون"
+            },
+            {
+                "category": "نصوص (مجد الوطن)",
+                "type": "essay",
+                "context": "اقرأ الأبيات التالية:\nما لمن للكسول بين الملأ قيمة ... ولا خمول سلم إلى العلا\nإن الهمم تبني الأمم ... خير الشيم أن نعمل",
+                "question": "ما مرادف كلمة 'الشيم'؟ وما مضاد كلمة 'الكسول'؟",
+                "model_answer": "مرادف الشيم: الأخلاق أو الصفات. مضاد الكسول: النشيط أو المجتهد."
+            },
+            {
+                "category": "نصوص (مجد الوطن)",
+                "type": "essay",
+                "context": "بالرجوع للأبيات السابقة:\nما لمن للكسول بين الملأ قيمة ... ولا خمول سلم إلى العلا\nإن الهمم تبني الأمم ... خير الشيم أن نعمل",
+                "question": "اذكر الصفات التي لا يمكن معها تحقيق التقدم كما فهمت من الأبيات.",
+                "model_answer": "الصفات هي: الكسل، الخمول، وعدم العمل."
+            },
+            {
+                "category": "نصوص (مجد الوطن)",
+                "type": "essay",
+                "context": "تأمل قول الشاعر:\n'إن الهمم تبني الأمم'",
+                "question": "وضح التعبير المجازي في قول الشاعر: 'إن الهمم تبني الأمم'.",
+                "model_answer": "تعبير مجازي حيث صور الهمم بأشخاص يبنون، وصور الأمم ببناء يُبنى."
+            },
+            {
+                "category": "نصوص (مجد الوطن)",
+                "type": "essay",
+                "context": "استخرج من الأبيات السابقة كلمتين لهما نفس النهاية.",
+                "question": "اكتب الكلمتين هنا:",
+                "model_answer": "الأمم - الشيم (أو العلا - الملا)."
+            },
+            {
+                "category": "التعبير الكتابي (إضافي)",
+                "type": "essay",
+                "context": "تأمل المنشور التالي:\n'الوقت كنزك الثمين، فاستغله فيما ينفعك وينفع وطنك، فالزمن لا يعود للخلف'.",
+                "question": "استخرج المحتوى الموجز لهذا المنشور.",
+                "model_answer": "يتحدث المنشور عن أهمية الوقت وضرورة استغلاله فيما ينفع الإنسان ووطنه."
+            },
+            {
+                "category": "التعبير الكتابي (إضافي)",
+                "type": "essay",
+                "context": "الموضوع: 'الغذاء الصحي وأهميته لبناء جسم قوي وعقل سليم'.",
+                "question": "ضع عنوانين مختلفين وجذابين لمنشور يتناول هذا الموضوع.",
+                "model_answer": "1- صحتك في غذائك. 2- طريقك نحو حياة أفضل بالغذاء الصحي."
+            },
+            {
+                "category": "النحو والقواعد (إضافي)",
+                "type": "essay",
+                "context": "اقرأ الفقرة التالية:\n'الصدق رأس الفضائل التي يجب على الإنسان أن يتحلى بها؛ ليكون متحلياً بها دائماً، ولا تتخل عنها أبداً، تعش سالماً في حياتك'.",
+                "question": "استخرج من الفقرة فعلاً مضارعاً مرفوعاً وآخر منصوباً مع إعرابهما.",
+                "model_answer": "المرفوع: يجب (فعل مضارع مرفوع بالضمة). المنصوب: أن يتحلى (منصوب بالفتحة المقدرة) أو ليكون (منصوب بالفتحة)."
+            },
+            {
+                "category": "النحو والقواعد (إضافي)",
+                "type": "mcq",
+                "question": "لن ................. المسافرون عن موعد الرحلة. (اختر الفعل الصحيح)",
+                "options": ["أ- يتأخرون", "ب- يتأخروا", "ج- يتأخرن", "د- يتأخر"],
+                "answer": "ب- يتأخروا"
+            },
+            {
+                "category": "النحو والقواعد (إضافي)",
+                "type": "mcq",
+                "question": "الفعل 'يسمو' هو فعل ............... الآخر.",
+                "options": ["أ- صحيح", "ب- معتل", "ج- مهموز"],
+                "answer": "ب- معتل"
+            },
+            {
+                "category": "نصوص (إضافي)",
+                "type": "essay",
+                "context": "تأمل البيت التالي:\n'إن العمل يحيي الأمل ... سر الوجود فيه نسود'",
+                "question": "ما أثر العمل في حياة الإنسان كما فهمت من البيت؟",
+                "model_answer": "العمل يحيي الأمل في النفوس وهو سر الوجود والتقدم والسيادة."
+            },
+            {
+                "category": "نصوص (إضافي)",
+                "type": "essay",
+                "question": "ما مرادف كلمة 'نسود'؟ وما مضاد كلمة 'الأمل'؟",
+                "model_answer": "مرادف نسود: نتقدم أو نصبح أسياداً. مضاد الأمل: اليأس."
+            },
+            {
+                "category": "نصوص (إضافي)",
+                "type": "essay",
+                "context": "استخرج من البيت التالي كلمتين لهما نفس النهاية:\n'إن العمل يحيي الأمل ... سر الوجود فيه نسود'",
+                "question": "اكتب الكلمتين هنا:",
+                "model_answer": "الأمل - الوجود (أو نسود)."
+            }
+        ]
+    };
+
+    let currentIndex = 0;
+    let score = 0;
+    let audioCtx = null;
+
+    function initGame() {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        document.getElementById('start-screen').style.display = 'none';
+        document.getElementById('game-screen').style.display = 'block';
+        loadQuestion();
+    }
+
+    function playSound(isCorrect) {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.frequency.setValueAtTime(isCorrect ? 660 : 220, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+    }
+
+    function loadQuestion() {
+        const q = data.questions[currentIndex];
+        document.getElementById('q-category').innerText = q.category;
+        document.getElementById('q-count').innerText = `${currentIndex + 1} / ${data.questions.length}`;
+        document.getElementById('progress-fill').style.width = `${((currentIndex) / data.questions.length) * 100}%`;
+        document.getElementById('next-btn').style.display = 'none';
+
+        const area = document.getElementById('question-area');
+        let content = `<div class="badge">${q.category}</div>`;
+        if (q.context) content += `<div class="context-box"><strong>النص المرجعي:</strong>${q.context}</div>`;
+        content += `<div class="question-title">${q.question}</div>`;
+
+        if (q.type === 'mcq' || q.type === 'true_false') {
+            content += `<div class="options-container">`;
+            q.options.forEach(opt => {
+                content += `<div class="option-card" onclick="handleChoice(this, '${opt}')">${opt}</div>`;
+            });
+            content += `</div>`;
+        } else {
+            content += `
+                <textarea id="essay-input" placeholder="اكتب إجابتك هنا بناءً على النص أعلاه..."></textarea>
+                <button class="btn" id="essay-submit" onclick="handleEssay()">إرسال الإجابة</button>
+            `;
+        }
+        content += `<div id="feedback" class="feedback-box"></div>`;
+        area.innerHTML = content;
+    }
+
+    window.handleChoice = function(el, choice) {
+        if (el.classList.contains('disabled')) return;
+        const q = data.questions[currentIndex];
+        const cards = document.querySelectorAll('.option-card');
+        cards.forEach(c => c.classList.add('disabled'));
+
+        if (choice === q.answer) {
+            el.classList.add('correct');
+            playSound(true);
+            score++;
+        } else {
+            el.classList.add('wrong');
+            playSound(false);
+            cards.forEach(c => { if (c.innerText === q.answer) c.classList.add('correct'); });
+        }
+        document.getElementById('next-btn').style.display = 'inline-block';
+    };
+
+    window.handleEssay = function() {
+        const val = document.getElementById('essay-input').value.trim();
+        if (!val) return alert("يرجى كتابة إجابة أولاً");
+        
+        const q = data.questions[currentIndex];
+        const fb = document.getElementById('feedback');
+        document.getElementById('essay-input').disabled = true;
+        document.getElementById('essay-submit').style.display = 'none';
+
+        const keywords = q.model_answer.replace(/[^\u0621-\u064A\s]/g, '').split(/\s+/).filter(w => w.length > 2);
+        let matches = 0;
+        keywords.forEach(w => { if (val.includes(w)) matches++; });
+        
+        const ratio = matches / keywords.length;
+        let msg = "", cls = "";
+        if (ratio >= 0.35) { msg = "إجابة موفقة جداً! لقد استخلصت المطلوب بدقة."; cls = "feedback-success"; score++; }
+        else if (ratio > 0) { msg = "إجابة جيدة، ولكنها تحتاج لمزيد من التفصيل من واقع النص."; cls = "feedback-warning"; score += 0.5; }
+        else { msg = "حاول قراءة النص المرجعي بتركيز أكبر في المرة القادمة."; cls = "feedback-error"; }
+
+        fb.innerHTML = `<strong>تحليل المعلم:</strong><br>${msg}<br><br><strong>الإجابة النموذجية:</strong><br>${q.model_answer}`;
+        fb.className = `feedback-box visible ${cls}`;
+        document.getElementById('next-btn').style.display = 'inline-block';
+    };
+
+    window.loadNextQuestion = function() {
+        currentIndex++;
+        if (currentIndex < data.questions.length) loadQuestion();
+        else showResults();
+    };
+
+    function showResults() {
+        document.getElementById('game-screen').style.display = 'none';
+        document.getElementById('result-screen').style.display = 'block';
+        document.getElementById('final-score').innerText = score;
+        document.getElementById('total-possible').innerText = data.questions.length;
+        document.getElementById('progress-fill').style.width = '100%';
+        
+        const perc = (score / data.questions.length) * 100;
+        let rank = "", msg = "";
+        if (perc >= 90) { rank = "أنت نابغة! 🏆"; msg = "أداء استثنائي، لقد أثبت تمكنك من اللغة العربية."; }
+        else if (perc >= 70) { rank = "رائع جداً! ✨"; msg = "مستوى متميز، استمر في هذا التألق والاجتهاد."; }
+        else { rank = "بالتوفيق في المرات القادمة! 💪"; msg = "أحسنت المحاولة، المراجعة المستمرة هي طريقك للتفوق."; }
+        
+        document.getElementById('final-rank').innerText = rank;
+        document.getElementById('final-msg').innerText = msg;
+    }
+</script>
+
+</body>
+</html>
